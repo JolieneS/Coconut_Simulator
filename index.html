@@ -1,630 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>COCO – Island Explorer</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;700;900&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --sand: #e8c46a;
-    --ocean: #1a9ee0;
-    --deep: #083a60;
-    --coconut: #5C3D0A;
-    --leaf: #2d7a1a;
-    --white: #fffdf7;
-    --shadow: rgba(0,0,0,0.5);
-  }
-
-  html, body {
-    width: 100%; height: 100%;
-    background: #000;
-    font-family: 'Nunito', sans-serif;
-    overflow: hidden;
-  }
-
-  /* ── SCREENS ─────────────────────────────── */
-  .screen {
-    position: fixed; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.8s ease;
-  }
-  .screen.active { opacity: 1; pointer-events: all; }
-
-  /* ── INTRO ───────────────────────────────── */
-  #intro {
-    background: #000;
-    flex-direction: column;
-  }
-  #intro img {
-    max-width: 85vw; max-height: 85vh;
-    object-fit: contain;
-    border-radius: 20px;
-    box-shadow: 0 0 60px rgba(232,196,106,0.4);
-    animation: introPulse 1.5s ease-in-out infinite alternate;
-  }
-  @keyframes introPulse {
-    from { box-shadow: 0 0 40px rgba(232,196,106,0.3); }
-    to   { box-shadow: 0 0 80px rgba(232,196,106,0.7); }
-  }
-  #intro-sub {
-    margin-top: 18px;
-    color: var(--sand);
-    font-size: 14px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    opacity: 0.7;
-    animation: blink 1.2s ease-in-out infinite;
-  }
-  @keyframes blink { 0%,100%{opacity:0.4} 50%{opacity:1} }
-
-  /* ── MAIN MENU ───────────────────────────── */
-  #menu {
-    flex-direction: column;
-    align-items: center;
-  }
-  #menu-bg {
-    position: absolute; inset: 0;
-    overflow: hidden;
-  }
-  #menu-bg img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    filter: brightness(0.55);
-  }
-  #menu-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(8,58,96,0.7));
-  }
-  #menu-content {
-    position: relative; z-index: 2;
-    display: flex; flex-direction: column;
-    align-items: center; gap: 18px;
-  }
-  #menu-title {
-    font-family: 'Lobster', cursive;
-    font-size: clamp(48px, 10vw, 90px);
-    color: var(--sand);
-    text-shadow: 0 4px 24px rgba(0,0,0,0.7), 0 0 40px rgba(232,196,106,0.5);
-    letter-spacing: 2px;
-    margin-bottom: 8px;
-  }
-  #menu-title span { color: #fff; }
-  .menu-btn {
-    width: 220px; padding: 14px 0;
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(8px);
-    border: 2px solid rgba(232,196,106,0.6);
-    border-radius: 50px;
-    color: var(--white);
-    font-family: 'Nunito', sans-serif;
-    font-size: 20px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.25s;
-    text-align: center;
-  }
-  .menu-btn:hover {
-    background: rgba(232,196,106,0.3);
-    border-color: var(--sand);
-    transform: scale(1.07);
-    box-shadow: 0 0 24px rgba(232,196,106,0.5);
-  }
-  .menu-btn:active { transform: scale(0.97); }
-  .menu-btn.danger { border-color: rgba(255,100,80,0.6); }
-  .menu-btn.danger:hover { background: rgba(255,80,60,0.25); border-color: #ff6450; box-shadow: 0 0 24px rgba(255,100,80,0.4); }
-
-  /* ── SETTINGS ────────────────────────────── */
-  #settings {
-    flex-direction: column;
-    align-items: center;
-    background: radial-gradient(ellipse at 50% 40%, #0a4080, #020d18);
-  }
-  #settings-box {
-    background: rgba(255,255,255,0.07);
-    backdrop-filter: blur(12px);
-    border: 1.5px solid rgba(232,196,106,0.4);
-    border-radius: 24px;
-    padding: 44px 52px;
-    display: flex; flex-direction: column;
-    align-items: center; gap: 22px;
-    box-shadow: 0 8px 48px rgba(0,0,0,0.6);
-    max-width: 480px; width: 90vw;
-  }
-  #settings-title {
-    font-family: 'Lobster', cursive;
-    font-size: 32px;
-    color: var(--sand);
-    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-  }
-  #settings-q {
-    color: var(--white);
-    font-size: 18px;
-    font-weight: 700;
-    text-align: center;
-    opacity: 0.9;
-  }
-  .mode-btn {
-    width: 100%; padding: 16px 0;
-    border-radius: 14px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 18px; font-weight: 900;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.25s;
-    border: 2px solid transparent;
-  }
-  .mode-btn.arcade {
-    background: linear-gradient(135deg, #f4a045, #e85d04);
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(244,160,69,0.4);
-  }
-  .mode-btn.arcade:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(244,160,69,0.6); }
-  .mode-btn.realistic {
-    background: linear-gradient(135deg, #1a9ee0, #083a60);
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(26,158,224,0.35);
-  }
-  .mode-btn.realistic:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(26,158,224,0.5); }
-  #back-btn {
-    margin-top: 8px;
-    background: none; border: none;
-    color: rgba(255,255,255,0.5);
-    font-family: 'Nunito', sans-serif;
-    font-size: 14px; cursor: pointer;
-    text-decoration: underline;
-    transition: color 0.2s;
-  }
-  #back-btn:hover { color: var(--sand); }
-
-  /* ── REALISTIC SCREEN ────────────────────── */
-  #realistic-screen {
-    background: #000;
-    flex-direction: column;
-    gap: 24px;
-    text-align: center;
-    padding: 40px;
-  }
-  #realistic-screen h2 {
-    font-family: 'Lobster', cursive;
-    font-size: clamp(28px, 6vw, 56px);
-    color: var(--sand);
-    text-shadow: 0 0 30px rgba(232,196,106,0.3);
-    max-width: 600px;
-    line-height: 1.3;
-  }
-  #realistic-screen p {
-    color: rgba(255,255,255,0.4);
-    font-size: 14px;
-    letter-spacing: 2px;
-  }
-  #realistic-back {
-    padding: 12px 32px;
-    border: 1.5px solid rgba(232,196,106,0.5);
-    border-radius: 50px;
-    background: none;
-    color: var(--sand);
-    font-family: 'Nunito', sans-serif;
-    font-size: 16px; font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  #realistic-back:hover { background: rgba(232,196,106,0.15); }
-
-  /* ── 360 GAME ────────────────────────────── */
-  #game {
-    cursor: grab;
-    background: #000;
-    flex-direction: column;
-  }
-  #game:active { cursor: grabbing; }
-  #game-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  #game-compass {
-    position: absolute; top: 14px; right: 14px;
-    width: 48px; height: 48px; z-index: 5;
-  }
-  #tilt-bar {
-    position: absolute; top: 14px; left: 14px;
-    width: 10px; height: 100px;
-    background: rgba(0,0,0,0.3); border-radius: 8px;
-    overflow: hidden; z-index: 5;
-  }
-  #tilt-fill { position: absolute; bottom: 0; width: 100%; background: rgba(255,255,255,0.6); border-radius: 8px; }
-  #game-back {
-    position: absolute; bottom: 18px; left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    padding: 9px 28px;
-    border: 1.5px solid rgba(255,255,255,0.3);
-    border-radius: 50px;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(6px);
-    color: rgba(255,255,255,0.8);
-    font-family: 'Nunito', sans-serif;
-    font-size: 13px; font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 1px;
-  }
-  #game-back:hover { background: rgba(0,0,0,0.7); color: var(--sand); }
-
-  /* ── AUDIO ───────────────────────────────── */
-  #audio-note {
-    position: fixed; bottom: 20px; right: 20px;
-    background: rgba(0,0,0,0.6);
-    color: rgba(255,255,255,0.7);
-    font-size: 12px; padding: 8px 14px;
-    border-radius: 20px; z-index: 100;
-    transition: opacity 0.5s;
-    pointer-events: none;
-  }
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>COCO – Island Explorer</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet"/>
 </head>
 <body>
 
-<!-- AUDIO NOTE -->
-<div id="audio-note">🔊 Enable sound for full experience</div>
-
-<!-- ── INTRO ── -->
-<div class="screen active" id="intro">
-  <img src="coco_intro.png" alt="Coco Intro" id="intro-img" onerror="this.style.display='none'; document.getElementById('intro-fallback').style.display='flex'"/>
-  <div id="intro-fallback" style="display:none;flex-direction:column;align-items:center;gap:16px">
-    <div style="font-family:'Lobster',cursive;font-size:72px;color:#e8c46a;text-shadow:0 0 40px rgba(232,196,106,0.6)">COCO</div>
-    <div style="color:rgba(255,255,255,0.5);font-size:13px;letter-spacing:3px">(place coco_intro.png here)</div>
+  <!-- ── INTRO SCREEN ── -->
+  <div class="screen active" id="intro">
+    <img src="coco_intro.png" alt="Coco Intro" id="intro-img"
+         onerror="this.style.display='none'; document.getElementById('intro-fallback').style.display='flex'"/>
+    <div id="intro-fallback">
+      <div class="fallback-title">COCO 🥥</div>
+      <div class="fallback-sub">(place coco_intro.png here)</div>
+    </div>
+    <div id="intro-sub">Loading paradise…</div>
   </div>
-  <div id="intro-sub">Loading paradise…</div>
-</div>
 
-<!-- ── MAIN MENU ── -->
-<div class="screen" id="menu">
-  <div id="menu-bg">
-    <img src="coco_q.png" alt="Beach bg" onerror="this.style.background='linear-gradient(135deg,#083a60,#1a9ee0,#e8c46a)';this.style.width='100%';this.style.height='100%'"/>
-    <div id="menu-overlay"></div>
+  <!-- ── MAIN MENU SCREEN ── -->
+  <div class="screen" id="menu">
+    <div id="menu-bg">
+      <img src="coco_q.png" alt="Beach background"
+           onerror="this.style.background='linear-gradient(135deg,#083a60,#1a9ee0,#e8c46a)';this.removeAttribute('src')"/>
+      <div id="menu-overlay"></div>
+    </div>
+    <div id="menu-content">
+      <div id="menu-title">COCO <span>🥥</span></div>
+      <button class="menu-btn" onclick="startPlay()">▶ Play</button>
+      <button class="menu-btn" onclick="showSettings()">⚙ Settings</button>
+      <button class="menu-btn danger" onclick="quitToIntro()">✕ Quit</button>
+    </div>
   </div>
-  <div id="menu-content">
-    <div id="menu-title">COCO<span> 🥥</span></div>
-    <button class="menu-btn" onclick="startPlay()">▶ Play</button>
-    <button class="menu-btn" onclick="showSettings()">⚙ Settings</button>
-    <button class="menu-btn danger" onclick="quitToIntro()">✕ Quit</button>
+
+  <!-- ── SETTINGS SCREEN ── -->
+  <div class="screen" id="settings">
+    <div id="settings-box">
+      <div id="settings-title">Settings</div>
+      <div id="settings-q">Select a Game Mode</div>
+      <button class="mode-btn arcade" onclick="startArcade()">🎮 Arcade</button>
+      <button class="mode-btn realistic" onclick="startRealistic()">🌊 Realistic</button>
+      <button id="back-btn" onclick="goBack('menu')">← Back to Menu</button>
+    </div>
   </div>
-</div>
 
-<!-- ── SETTINGS ── -->
-<div class="screen" id="settings">
-  <div id="settings-box">
-    <div id="settings-title">🌴 Settings</div>
-    <div id="settings-q">Select a Game Mode</div>
-    <button class="mode-btn arcade" onclick="startArcade()">🎮 Arcade</button>
-    <button class="mode-btn realistic" onclick="startRealistic()">🌊 Realistic</button>
-    <button id="back-btn" onclick="goBack('menu')">← Back to Menu</button>
+  <!-- ── REALISTIC SCREEN ── -->
+  <div class="screen" id="realistic-screen">
+    <div id="realistic-box">
+      <div id="realistic-emoji">🥥</div>
+      <h2 id="realistic-text">"Coconuts have no eyes,<br/>so you can't see anything."</h2>
+      <p id="realistic-sub">REALISTIC MODE ACTIVATED</p>
+      <button id="realistic-back" onclick="goBack('menu')">← Back to Menu</button>
+    </div>
   </div>
-</div>
 
-<!-- ── REALISTIC ── -->
-<div class="screen" id="realistic-screen">
-  <h2>"Coconuts have no eyes, so you can't see anything."</h2>
-  <p>REALISTIC MODE ACTIVATED</p>
-  <button id="realistic-back" onclick="goBack('menu')">← Back to Menu</button>
-</div>
+  <!-- ── 360 GAME SCREEN ── -->
+  <div class="screen" id="game">
+    <canvas id="game-canvas"></canvas>
+    <svg id="game-compass" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="22" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+      <text x="24" y="10"  text-anchor="middle" fill="white" font-size="9" font-family="sans-serif">N</text>
+      <text x="24" y="42"  text-anchor="middle" fill="white" font-size="9" font-family="sans-serif">S</text>
+      <text x="8"  y="27"  text-anchor="middle" fill="white" font-size="9" font-family="sans-serif">W</text>
+      <text x="40" y="27"  text-anchor="middle" fill="white" font-size="9" font-family="sans-serif">E</text>
+      <polygon id="compass-needle" points="24,14 22,26 24,28 26,26" fill="#ff4444"/>
+      <polygon points="24,34 22,26 24,28 26,26" fill="white"/>
+      <circle cx="24" cy="24" r="3" fill="white"/>
+    </svg>
+    <div id="tilt-bar"><div id="tilt-fill"></div></div>
+    <button id="game-back" onclick="goBack('menu')">← Menu</button>
+  </div>
 
-<!-- ── 360 GAME ── -->
-<div class="screen" id="game">
-  <canvas id="game-canvas"></canvas>
-  <svg id="game-compass" viewBox="0 0 48 48">
-    <circle cx="24" cy="24" r="22" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
-    <text x="24" y="10" text-anchor="middle" fill="white" font-size="9" font-family="sans-serif">N</text>
-    <text x="24" y="42" text-anchor="middle" fill="white" font-size="9" font-family="sans-serif">S</text>
-    <text x="8"  y="27" text-anchor="middle" fill="white" font-size="9" font-family="sans-serif">W</text>
-    <text x="40" y="27" text-anchor="middle" fill="white" font-size="9" font-family="sans-serif">E</text>
-    <polygon id="compass-needle" points="24,14 22,26 24,28 26,26" fill="#ff4444"/>
-    <polygon points="24,34 22,26 24,28 26,26" fill="white"/>
-    <circle cx="24" cy="24" r="3" fill="white"/>
-  </svg>
-  <div id="tilt-bar"><div id="tilt-fill"></div></div>
-  <button id="game-back" onclick="goBack('menu')">← Menu</button>
-</div>
-
-<script>
-/* ═══════════════════════════════════════════
-   SCREEN MANAGER
-═══════════════════════════════════════════ */
-let currentScreen = 'intro';
-let audioCtx = null;
-let beachNodes = [];
-let gameRunning = false;
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  currentScreen = id;
-}
-
-function goBack(to) { showScreen(to); }
-
-/* ═══════════════════════════════════════════
-   INTRO → MENU
-═══════════════════════════════════════════ */
-setTimeout(() => {
-  document.getElementById('intro').style.transition = 'opacity 1s ease';
-  document.getElementById('intro').style.opacity = '0';
-  setTimeout(() => {
-    showScreen('menu');
-    startBeachAudio();
-  }, 1000);
-}, 3000);
-
-/* ═══════════════════════════════════════════
-   BEACH AUDIO (Web Audio API)
-═══════════════════════════════════════════ */
-function startBeachAudio() {
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const masterGain = audioCtx.createGain();
-    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    masterGain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 3);
-    masterGain.connect(audioCtx.destination);
-    beachNodes.push(masterGain);
-
-    // Wave layer 1 – low rumble
-    const makeWave = (freq, detune, gain, lfoRate, lfoDepth) => {
-      const osc = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      const filter = audioCtx.createBiquadFilter();
-      const lfo = audioCtx.createOscillator();
-      const lfoGain = audioCtx.createGain();
-
-      osc.type = 'sawtooth';
-      osc.frequency.value = freq;
-      osc.detune.value = detune;
-
-      filter.type = 'lowpass';
-      filter.frequency.value = 400;
-      filter.Q.value = 0.5;
-
-      lfo.frequency.value = lfoRate;
-      lfoGain.gain.value = lfoDepth;
-
-      lfo.connect(lfoGain);
-      lfoGain.connect(g.gain);
-      osc.connect(filter);
-      filter.connect(g);
-      g.gain.value = gain;
-      g.connect(masterGain);
-
-      osc.start(); lfo.start();
-      beachNodes.push(osc, g, filter, lfo, lfoGain);
-    };
-
-    makeWave(60, 0, 0.3, 0.08, 0.25);
-    makeWave(120, 15, 0.15, 0.13, 0.2);
-    makeWave(200, -10, 0.08, 0.05, 0.15);
-
-    // Bird chirps
-    const chirp = () => {
-      if (!audioCtx) return;
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(1200 + Math.random()*800, audioCtx.currentTime);
-      o.frequency.exponentialRampToValueAtTime(800 + Math.random()*400, audioCtx.currentTime + 0.15);
-      g.gain.setValueAtTime(0.06, audioCtx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-      o.connect(g); g.connect(masterGain);
-      o.start(); o.stop(audioCtx.currentTime + 0.2);
-      setTimeout(chirp, 3000 + Math.random()*5000);
-    };
-    setTimeout(chirp, 2000);
-
-    document.getElementById('audio-note').style.opacity = '0';
-  } catch(e) { /* audio not available */ }
-}
-
-/* ═══════════════════════════════════════════
-   NAVIGATION
-═══════════════════════════════════════════ */
-function startPlay() { showScreen('game'); startGame(); }
-function showSettings() { showScreen('settings'); }
-function startArcade() { showScreen('game'); startGame(); }
-function startRealistic() { showScreen('realistic-screen'); }
-function quitToIntro() {
-  showScreen('intro');
-  document.getElementById('intro').style.opacity = '1';
-  setTimeout(() => {
-    document.getElementById('intro').style.opacity = '0';
-    setTimeout(() => showScreen('menu'), 1000);
-  }, 3000);
-}
-
-/* ═══════════════════════════════════════════
-   360 BEACH GAME
-═══════════════════════════════════════════ */
-const canvas = document.getElementById('game-canvas');
-const ctx2 = canvas.getContext('2d');
-const compassNeedle = document.getElementById('compass-needle');
-const tiltFillEl = document.getElementById('tilt-fill');
-
-let angleH = 0, tilt = 0;
-let dragging = false, lastX = 0, lastY = 0;
-let animId = null;
-
-function startGame() {
-  if (animId) cancelAnimationFrame(animId);
-  angleH = 0; tilt = 0;
-  resizeCanvas();
-  gameLoop();
-}
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', () => { if (currentScreen==='game') resizeCanvas(); });
-
-const gameDiv = document.getElementById('game');
-gameDiv.addEventListener('mousedown', e=>{ dragging=true; lastX=e.clientX; lastY=e.clientY; });
-gameDiv.addEventListener('touchstart', e=>{ dragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; },{passive:true});
-window.addEventListener('mousemove', e=>{ if(!dragging)return; angleH+=(e.clientX-lastX)*0.005; tilt=Math.max(-1,Math.min(1,tilt-(e.clientY-lastY)*0.004)); lastX=e.clientX; lastY=e.clientY; });
-window.addEventListener('touchmove', e=>{ if(!dragging)return; angleH+=(e.touches[0].clientX-lastX)*0.005; tilt=Math.max(-1,Math.min(1,tilt-(e.touches[0].clientY-lastY)*0.004)); lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; },{passive:true});
-window.addEventListener('mouseup', ()=>dragging=false);
-window.addEventListener('touchend', ()=>dragging=false);
-
-function lerp(a,b,t){return a+(b-a)*t;}
-
-function gameLoop() {
-  if (currentScreen !== 'game') { animId = requestAnimationFrame(gameLoop); return; }
-  const W = canvas.width, H = canvas.height;
-  ctx2.clearRect(0,0,W,H);
-  const off = angleH/(Math.PI*2);
-  const tiltShift = tilt * H * 0.35;
-
-  // SKY
-  const sunA = (off*0.5*360+200)%360;
-  const isSunset = sunA>260&&sunA<340;
-  const skyH = H*(0.55+tilt*0.4);
-  const gSky = ctx2.createLinearGradient(0,0,0,skyH);
-  gSky.addColorStop(0, isSunset?'#1a0a2e':'#0a4fa0');
-  gSky.addColorStop(0.6, isSunset?'#c84b11':'#1a9ee0');
-  gSky.addColorStop(1, isSunset?'#f4a045':'#87ceeb');
-  ctx2.fillStyle=gSky; ctx2.fillRect(0,0,W,skyH);
-
-  // SUN
-  const sunX2 = ((sunA/360*W*3-off*W*0.5)%(W*3)+W*3)%(W*3)-W;
-  const sunY2 = skyH*0.22+tiltShift*-0.2;
-  if(sunX2>-80&&sunX2<W+80&&sunY2>0&&sunY2<skyH){
-    const sg=ctx2.createRadialGradient(sunX2,sunY2,0,sunX2,sunY2,55);
-    sg.addColorStop(0,isSunset?'rgba(255,220,50,1)':'rgba(255,255,200,1)');
-    sg.addColorStop(0.4,isSunset?'rgba(255,120,20,0.8)':'rgba(255,240,80,0.7)');
-    sg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx2.fillStyle=sg; ctx2.beginPath(); ctx2.arc(sunX2,sunY2,55,0,Math.PI*2); ctx2.fill();
-  }
-
-  // STARS
-  if(tilt<-0.3){
-    const sa=Math.min(1,(-tilt-0.3)*3);
-    ctx2.fillStyle=`rgba(255,255,255,${sa*0.8})`;
-    [[50,30],[150,60],[300,20],[420,80],[520,40],[200,100],[380,50],[100,90],[600,70],[480,25]].forEach(([sx,sy])=>{
-      ctx2.beginPath(); ctx2.arc(sx,sy-tiltShift*0.3,1.5,0,Math.PI*2); ctx2.fill();
-    });
-  }
-
-  // CLOUDS
-  const clouds=[{bx:0.05,y:0.12,w:120,h:30},{bx:0.22,y:0.08,w:90,h:25},{bx:0.45,y:0.15,w:140,h:35},{bx:0.65,y:0.09,w:100,h:28},{bx:0.82,y:0.13,w:110,h:32}];
-  ctx2.fillStyle=isSunset?'rgba(255,180,100,0.5)':'rgba(255,255,255,0.75)';
-  for(const c of clouds){
-    const cx=((c.bx*W*3-off*W*0.8)%(W*3)+W*3)%(W*3)-W*0.2;
-    const cy=skyH*c.y+tiltShift*0.1;
-    if(cy>0&&cy<skyH){ ctx2.beginPath(); ctx2.ellipse(cx,cy,c.w*0.5,c.h*0.5,0,0,Math.PI*2); ctx2.ellipse(cx-c.w*0.25,cy+c.h*0.1,c.w*0.35,c.h*0.4,0,0,Math.PI*2); ctx2.ellipse(cx+c.w*0.25,cy+c.h*0.1,c.w*0.38,c.h*0.38,0,0,Math.PI*2); ctx2.fill(); }
-  }
-
-  // OCEAN
-  const oceanH=H*0.2;
-  const gOcean=ctx2.createLinearGradient(0,skyH,0,skyH+oceanH);
-  gOcean.addColorStop(0,'#0e7fc0'); gOcean.addColorStop(0.5,'#0a5e90'); gOcean.addColorStop(1,'#083a60');
-  ctx2.fillStyle=gOcean; ctx2.fillRect(0,skyH,W,oceanH);
-  ctx2.strokeStyle='rgba(255,255,255,0.3)'; ctx2.lineWidth=1.5;
-  for(let i=0;i<5;i++){
-    const wy=skyH+oceanH*(0.1+i*0.18); const wOff=(off*40*W+i*80)%(W*2);
-    ctx2.beginPath();
-    for(let x=-20;x<W+20;x+=4){ const wvy=wy+Math.sin((x+wOff-W)*0.04+i)*3; x===-20?ctx2.moveTo(x,wvy):ctx2.lineTo(x,wvy); }
-    ctx2.stroke();
-  }
-  const oceanBottom=skyH+oceanH;
-
-  // SAND
-  const gSand=ctx2.createLinearGradient(0,oceanBottom,0,H);
-  gSand.addColorStop(0,'#d4a84b'); gSand.addColorStop(0.4,'#e8c46a'); gSand.addColorStop(1,'#c8943a');
-  ctx2.fillStyle=gSand;
-  ctx2.beginPath(); ctx2.moveTo(0,oceanBottom); ctx2.bezierCurveTo(W*0.25,oceanBottom-10,W*0.75,oceanBottom+10,W,oceanBottom); ctx2.lineTo(W,H); ctx2.lineTo(0,H); ctx2.closePath(); ctx2.fill();
-  ctx2.strokeStyle='rgba(180,130,30,0.3)'; ctx2.lineWidth=1;
-  for(let i=0;i<8;i++){
-    const ry=oceanBottom+(H-oceanBottom)*(0.15+i*0.1); const rOff=(off*15*W+i*60)%(W*2);
-    ctx2.beginPath();
-    for(let x=0;x<W;x+=5){ const wy=ry+Math.sin((x+rOff)*0.07)*2; x===0?ctx2.moveTo(x,wy):ctx2.lineTo(x,wy); }
-    ctx2.stroke();
-  }
-
-  // BG PALMS
-  [{bx:0.05,s:0.55},{bx:0.22,s:0.5},{bx:0.45,s:0.6},{bx:0.63,s:0.52},{bx:0.78,s:0.58},{bx:0.92,s:0.48}].forEach(t=>{
-    const tx=((t.bx*W*2.5-off*W*0.6)%(W*2.5)+W*2.5)%(W*2.5)-W*0.3;
-    if(tx>-100&&tx<W+100) drawPalm(tx,oceanBottom+(H-oceanBottom)*0.03,t.s,off,W,H);
-  });
-
-  // COCONUT
-  drawCoconut(W*0.5, oceanBottom+(H-oceanBottom)*0.25);
-
-  // FG PALMS
-  drawPalm(W*0.15,H*0.82,0.9,off,W,H);
-  drawPalm(W*0.82,H*0.80,0.85,off,W,H);
-
-  // GROUND DETAIL when looking down
-  if(tilt>0.5){
-    const a=Math.min(1,(tilt-0.5)*2);
-    ctx2.fillStyle=`rgba(200,160,60,${a*0.5})`; ctx2.fillRect(0,H*0.75,W,H*0.25);
-  }
-
-  // VIGNETTE
-  const vig=ctx2.createRadialGradient(W/2,H/2,W*0.3,W/2,H/2,W*0.75);
-  vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,0.35)');
-  ctx2.fillStyle=vig; ctx2.fillRect(0,0,W,H);
-
-  // COMPASS
-  const deg=(angleH*180/Math.PI+360)%360;
-  compassNeedle.setAttribute('transform',`rotate(${-deg},24,24)`);
-  tiltFillEl.style.height=(((tilt+1)/2)*100)+'%';
-
-  animId = requestAnimationFrame(gameLoop);
-}
-
-function drawPalm(x,baseY,scale,off,W,H){
-  const lean=Math.sin(off*0.3+x*0.01)*0.15;
-  ctx2.save(); ctx2.translate(x,baseY);
-  const tH=130*scale, tW=14*scale;
-  ctx2.fillStyle='#7a5c2a';
-  ctx2.beginPath();
-  ctx2.moveTo(-tW*0.5,0);
-  ctx2.quadraticCurveTo(-tW*0.5+tH*lean*0.5,-tH*0.5,-tW*0.3+tH*lean,-tH);
-  ctx2.lineTo(tW*0.3+tH*lean,-tH);
-  ctx2.quadraticCurveTo(tW*0.5+tH*lean*0.5,-tH*0.5,tW*0.5,0);
-  ctx2.closePath(); ctx2.fill();
-  ctx2.strokeStyle='#5a3f18'; ctx2.lineWidth=1;
-  for(let i=1;i<8;i++){ const ty=-tH*(i/8),tx=tH*lean*(i/8); ctx2.beginPath(); ctx2.moveTo(-tW*0.5+tx,ty); ctx2.lineTo(tW*0.5+tx,ty); ctx2.stroke(); }
-  const topX=tH*lean, topY=-tH;
-  const fronds=[{a:-0.3,l:85*scale},{a:0.5,l:95*scale},{a:1.1,l:75*scale},{a:1.9,l:80*scale},{a:2.6,l:70*scale},{a:-0.9,l:88*scale},{a:-1.5,l:72*scale},{a:3.2,l:65*scale}];
-  const sway=Math.sin(Date.now()*0.001+x)*0.04;
-  for(const f of fronds){
-    const a=f.a+sway, fx=topX+Math.cos(a)*f.l, fy=topY+Math.sin(a)*f.l+f.l*0.3;
-    ctx2.strokeStyle='#3a6b1a'; ctx2.lineWidth=2.5*scale;
-    ctx2.beginPath(); ctx2.moveTo(topX,topY); ctx2.quadraticCurveTo(topX+(fx-topX)*0.5,topY+(fy-topY)*0.3,fx,fy); ctx2.stroke();
-    for(let j=2;j<10;j++){
-      const t=j/10,mx=lerp(topX,fx,t),my=lerp(topY,fy,t)-(1-t)*t*4*f.l*0.3;
-      const la=a+Math.PI*0.5,ll=(12+(1-t)*8)*scale;
-      ctx2.strokeStyle=t<0.5?'#2d7a1a':'#3a8b25'; ctx2.lineWidth=1.5*scale;
-      ctx2.beginPath(); ctx2.moveTo(mx,my); ctx2.lineTo(mx+Math.cos(la)*ll,my+Math.sin(la)*ll); ctx2.stroke();
-      ctx2.beginPath(); ctx2.moveTo(mx,my); ctx2.lineTo(mx-Math.cos(la)*ll,my-Math.sin(la)*ll); ctx2.stroke();
-    }
-  }
-  ctx2.restore();
-}
-
-function drawCoconut(cx,cy){
-  ctx2.fillStyle='rgba(100,70,10,0.3)';
-  ctx2.beginPath(); ctx2.ellipse(cx+8,cy+18,28,10,0.2,0,Math.PI*2); ctx2.fill();
-  const cg=ctx2.createRadialGradient(cx-10,cy-10,5,cx,cy,32);
-  cg.addColorStop(0,'#8B6914'); cg.addColorStop(0.5,'#5C3D0A'); cg.addColorStop(1,'#3a2408');
-  ctx2.fillStyle=cg; ctx2.beginPath(); ctx2.arc(cx,cy,30,0,Math.PI*2); ctx2.fill();
-  ctx2.strokeStyle='rgba(60,30,5,0.5)'; ctx2.lineWidth=1;
-  for(let i=0;i<12;i++){ const a=(i/12)*Math.PI*2; ctx2.beginPath(); ctx2.moveTo(cx+Math.cos(a)*5,cy+Math.sin(a)*5); ctx2.lineTo(cx+Math.cos(a)*28,cy+Math.sin(a)*28); ctx2.stroke(); }
-  ctx2.fillStyle='#1a0a00';
-  [{dx:-6,dy:-4},{dx:5,dy:-6},{dx:0,dy:6}].forEach(e=>{ ctx2.beginPath(); ctx2.ellipse(cx+e.dx,cy+e.dy,4,3.5,0,0,Math.PI*2); ctx2.fill(); });
-  ctx2.fillStyle='rgba(255,200,100,0.15)'; ctx2.beginPath(); ctx2.ellipse(cx-10,cy-10,12,8,-0.5,0,Math.PI*2); ctx2.fill();
-}
-</script>
+  <!-- scripts -->
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>
